@@ -14,15 +14,16 @@ print(w3.from_wei(w3.eth.get_balance(ETH_ACCOUNT), 'ether'))
 def create_provenance(web3, input):
   transaction= {
     'to': '0x0000000000000000000000000000000000000000',
-    'from': eth_account,
+    'from': ETH_ACCOUNT,
     'value': 0,
     'data': input.encode('utf-8').hex(),
-    'gas': 2000000,
-    'nonce':0,
-    'maxFeePerGas': 2000000000,
-    'maxPriorityFeePerGas': 1000000000,
+    'gas': 200000,
+    'maxFeePerGas': web3.to_wei(100, 'gwei'),
+    'maxPriorityFeePerGas': web3.to_wei(2, 'gwei'),
+    'nonce': 1,
     'chainId':11155111}
   signed = web3.eth.account.sign_transaction(transaction, ETH_PRIVATE_KEY)
   return web3.eth.send_raw_transaction(signed.rawTransaction)
 
-create_provenance(w3, "this is a test")
+from hexbytes import HexBytes
+print(HexBytes(create_provenance(w3, "this is a test")))
