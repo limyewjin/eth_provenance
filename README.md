@@ -1,5 +1,5 @@
 # ETH Provenance
-ETH Provenance is a decentralized service that allows you to store an online distributed proof of existence for any data (document, image, etc.) on the Ethereum blockchain. By storing a cryptographic hash of your data on the blockchain, you can later certify that the data existed at a certain time without revealing the actual data or your identity.
+ETH Provenance is a simple service that allows you to store an online distributed proof of existence for any data (document, image, etc.) on the Ethereum blockchain. By storing a cryptographic hash of your data on the blockchain, you can later certify that the data existed at a certain time without revealing the actual data or your identity.
 
 The key advantages of using ETH Provenance are anonymity, privacy, and decentralization. Your document's existence is permanently validated by the Ethereum blockchain, so you don't need to trust any central authority. This makes ETH Provenance useful for various applications, such as:
 
