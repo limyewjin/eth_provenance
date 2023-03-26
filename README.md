@@ -14,8 +14,8 @@ Once the transaction is confirmed, the data is permanently certified and proven 
 
 If anyone wants to manually confirm the document's existence at the timestamped time, they should just follow these steps:
 
-  1 Calculate the document's SHA256 digest.
-  2 Find a transaction the Ethereum blockchain containing the document's hash.
-  3 The existence of that transaction in the blockchain proves that the document existed at the time the transaction was confirmed.
+  1. Calculate the document's SHA256 digest.
+  2. Find a transaction the Ethereum blockchain containing the document's hash - the exact transaction is provided to the user
+  3. The existence of that transaction in the blockchain proves that the document existed at the time the transaction was confirmed.
 
 By using ETH Provenance, you can be sure that your document's existence is permanently validated by the Ethereum blockchain, which is a decentralized and trustless network.
