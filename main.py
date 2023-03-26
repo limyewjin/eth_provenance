@@ -6,8 +6,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 import hashlib
 
-import datastore
-
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -65,6 +63,9 @@ class CertifyResponse(BaseModel):
     tx_hash: str
     explorer_url: str
 
+class CertifyRequestDigest(BaseModel):
+    data: str
+
 class CertifyRequestMulti(BaseModel):
     data: List[str]
 
@@ -75,6 +76,25 @@ class CertifyResponseMulti(BaseModel):
 async def get_file_content(file: UploadFile) -> str:
     contents = await file.read()
     return contents
+
+
+@app.post(
+    "/certify-digest",
+    response_model=CertifyResponse,
+)
+async def certify_digest(
+    request: CertifyRequestDigest = Body(...),
+    token: HTTPAuthorizationCredentials = Depends(validate_token),
+):
+    try:
+        digest = request.data
+        nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
+        tx_hash, explorer_url = create_provenance(w3, digest, nonce)
+        return CertifyResponse(tx_hash=tx_hash, explorer_url=explorer_url)
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail=f"str({e})")
+
 
 @app.post(
     "/certify-file",
@@ -122,9 +142,8 @@ async def certify_multi(
 
 @app.on_event("startup")
 async def startup():
-    global w3, ds
+    global w3
     w3 = Web3(Web3.HTTPProvider(ETH_HTTP_PROVIDER))
-    ds = datastore.DataStore()
 
 
 if __name__ == "__main__":
