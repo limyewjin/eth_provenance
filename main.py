@@ -33,5 +33,5 @@ nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
 print(nonce)
 while True:
     input_text = input('What text do you want to prove provenance on? ')
-    print(HexBytes(create_provenance(w3, input_textm nonce)))
+    print(HexBytes(create_provenance(w3, input_text, nonce)))
     nonce + 1 
