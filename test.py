@@ -14,7 +14,7 @@ headers = {
     "Authorization": f"Bearer {BEARER_TOKEN}"
 }
 
-def test_upsert_file():
+def test_certify_file():
     # Prepare a sample text file for testing
     file_name = "sample.txt"
     with open(file_name, "w") as f:
@@ -29,5 +29,5 @@ def test_upsert_file():
     print(response.json())
 
 if __name__ == "__main__":
-    test_upsert_file()
+    test_certify_file()
 
