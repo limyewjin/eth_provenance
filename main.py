@@ -23,8 +23,8 @@ def create_provenance(web3, input, nonce):
         'value': 0,
         'data': input.encode('utf-8').hex(),
         'gas': 200000,
-        'maxFeePerGas': web3.toWei(100, 'gwei'),
-        'maxPriorityFeePerGas': web3.toWei(2, 'gwei'),
+        'maxFeePerGas': web3.to_wei(100, 'gwei'),
+        'maxPriorityFeePerGas': web3.to_wei(2, 'gwei'),
         'nonce': nonce,
         'chainId': CHAIN_ID}
     signed = web3.eth.account.sign_transaction(transaction, ETH_PRIVATE_KEY)
@@ -34,5 +34,5 @@ nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
 print(nonce)
 while True:
     input_text = input('What text do you want to prove provenance on? ')
-    print(HexBytes(create_provenance(w3, input_text, nonce)))
+    print(HexBytes(create_provenance(w3, input_text, nonce)).hex())
     nonce += 1 
