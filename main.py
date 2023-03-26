@@ -33,6 +33,7 @@ ETH_HTTP_PROVIDER = os.getenv('ETH_HTTP_PROVIDER')
 NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
 CHAIN_ID = 11155111
 EXPLORER_URL_BASE = "https://sepolia.etherscan.io/tx/"
+PREFIX = "ETH_PROVENANCE:"
 
 
 def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
@@ -46,7 +47,7 @@ def create_provenance(web3, input, nonce):
         'to': NULL_ADDRESS,
         'from': ETH_ACCOUNT,
         'value': 0,
-        'data': input.encode('utf-8').hex(),
+        'data': (PREFIX + input).encode('utf-8').hex(),
         'gas': 200000,
         'maxFeePerGas': web3.to_wei(100, 'gwei'),
         'maxPriorityFeePerGas': web3.to_wei(2, 'gwei'),

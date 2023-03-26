@@ -25,7 +25,6 @@ def test_certify_file():
         response = httpx.post(f"{base_url}/certify-file", headers=headers, files=files)
 
     print(response.status_code)
-    print(response.text)
     print(response.json())
 
 if __name__ == "__main__":
