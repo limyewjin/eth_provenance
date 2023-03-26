@@ -4,16 +4,12 @@ from hexbytes import HexBytes
 from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from hashlib import sha256
+import hashlib
 
 import datastore
 
 from dotenv import load_dotenv
 load_dotenv()
-
-def get_document_from_file(file: UploadFile) -> str:
-    contents = file.file.read()
-    return sha256(contents).hexdigest()
 
 app = FastAPI()
 app.mount("/.well-known", StaticFiles(directory=".well-known"), name="static")
@@ -36,6 +32,7 @@ ETH_PRIVATE_KEY = os.getenv('ETH_PRIVATE_KEY')
 ETH_HTTP_PROVIDER = os.getenv('ETH_HTTP_PROVIDER')
 NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
 CHAIN_ID = 11155111
+EXPLORER_URL_BASE = "https://sepolia.etherscan.io/tx/"
 
 
 def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
@@ -56,70 +53,67 @@ def create_provenance(web3, input, nonce):
         'nonce': nonce,
         'chainId': CHAIN_ID}
     signed = web3.eth.account.sign_transaction(transaction, ETH_PRIVATE_KEY)
-    return web3.eth.send_raw_transaction(signed.rawTransaction)
+    tx_hash = HexBytes(web3.eth.send_raw_transaction(signed.rawTransaction)).hex()
+    return tx_hash, f"{EXPLORER_URL_BASE}{tx_hash}"
 
 
 from pydantic import BaseModel
 from typing import List
 
-class UpsertRequest(BaseModel):
-    documents: List[str]
-
-class UpsertResponse(BaseModel):
-    ids: List[str]
+class CertifyResponse(BaseModel):
     tx_hash: str
+    explorer_url: str
 
-# If using the upsert route with multiple documents and tx_hashes:
-class UpsertResponseMulti(BaseModel):
-    ids: List[str]
+class CertifyRequestMulti(BaseModel):
+    data: List[str]
+
+class CertifyResponseMulti(BaseModel):
     tx_hashes: List[str]
+    explorer_urls: List[str]
 
-
-async def get_document_from_file(file: UploadFile) -> str:
+async def get_file_content(file: UploadFile) -> str:
     contents = await file.read()
-    return sha256(contents).hexdigest()
+    return contents
 
 @app.post(
-    "/upsert-file",
-    response_model=UpsertResponse,
+    "/certify-file",
+    response_model=CertifyResponse,
 )
-async def upsert_file(
+async def certify_file(
     file: UploadFile = File(...),
     token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
-    document = await get_document_from_file(file)
-    # create SHA256 digest of the document
-    digest = hashlib.sha256(document).hexdigest()
-    # create provenance on the Ethereum blockchain
-    nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
-    tx_hash = create_provenance(w3, digest, nonce)
+    content = await get_file_content(file)
     try:
-        ids = await ds.upsert([document])
-        return UpsertResponse(ids=ids, tx_hash=tx_hash)
+        digest = hashlib.sha256(content).hexdigest()
+        nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
+        tx_hash, explorer_url = create_provenance(w3, digest, nonce)
+        return CertifyResponse(tx_hash=tx_hash, explorer_url=explorer_url)
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail=f"str({e})")
 
 
 @app.post(
-    "/upsert",
-    response_model=UpsertResponse,
+    "/certify-multi",
+    response_model=CertifyResponseMulti,
 )
-async def upsert(
-    request: UpsertRequest = Body(...),
+async def certify_multi(
+    request: CertifyRequestMulti = Body(...),
     token: HTTPAuthorizationCredentials = Depends(validate_token),
 ):
     try:
-        documents = request.documents
         # create SHA256 digest for each document
-        digests = [hashlib.sha256(doc).hexdigest() for doc in documents]
+        digests = [hashlib.sha256(data).hexdigest() for data in request.data]
         # create provenance for each digest on the Ethereum blockchain
         tx_hashes = []
+        explorer_urls = []
         for digest in digests:
             nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
-            tx_hashes.append(create_provenance(w3, digest, nonce))
-        ids = await ds.upsert(documents)
-        return UpsertResponse(ids=ids, tx_hashes=tx_hashes)
+            tx_hash, explorer_url = create_provenance(w3, digest, nonce)
+            tx_hashes.append(tx_hash)
+            explorer_urls.append(explorer_url)
+        return CertifyResponseMulti(tx_hashes=tx_hashes, explorer_urls=explorer_urls)
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")

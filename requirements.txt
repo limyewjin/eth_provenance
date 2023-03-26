@@ -5,5 +5,5 @@ fastapi
 uvicorn
 eth-hash
 eth-account
-web3
 python-multipart
+httpx
