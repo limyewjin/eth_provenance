@@ -13,7 +13,7 @@ CHAIN_ID = 11155111
 
 w3 = Web3(Web3.HTTPProvider(ETH_HTTP_PROVIDER))
 
-print(w3.fromWei(w3.eth.getBalance(ETH_ACCOUNT), 'ether'))
+print(w3.from_wei(w3.eth.getBalance(ETH_ACCOUNT), 'ether'))
 
 def create_provenance(web3, input, nonce):
     transaction = {
@@ -34,4 +34,4 @@ print(nonce)
 while True:
     input_text = input('What text do you want to prove provenance on? ')
     print(HexBytes(create_provenance(w3, input_text, nonce)))
-    nonce + 1 
+    nonce += 1 
