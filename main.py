@@ -1,39 +1,59 @@
+from flask import Flask, redirect, request, render_template, session
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
 import os
-from web3 import Web3
-from hexbytes import HexBytes
-from dotenv import load_dotenv
 
-load_dotenv()
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here')
 
-ETH_ACCOUNT = os.getenv('ETH_ACCOUNT')
-ETH_PRIVATE_KEY = os.getenv('ETH_PRIVATE_KEY')
-ETH_HTTP_PROVIDER = os.getenv('ETH_HTTP_PROVIDER')
-NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
-CHAIN_ID = 11155111
+# OAuth client credentials
+client_id = 'your_client_id'
+client_secret = 'your_client_secret'
+authorization_url = 'https://my_server.com/authorize'
+token_url = 'https://my_server.com/token'
+scope = ''
 
-w3 = Web3(Web3.HTTPProvider(ETH_HTTP_PROVIDER))
+@app.route('/')
+def index():
+    return 'Hello, world!'
 
-print(ETH_ACCOUNT)
-print(w3.from_wei(w3.eth.get_balance(ETH_ACCOUNT), 'ether'))
+@app.route('/authorize')
+def authorize():
+    client = BackendApplicationClient(client_id=client_id)
+    oauth = OAuth2Session(client=client, scope=scope)
+    authorization_url, state = oauth.authorization_url(authorization_url)
 
-def create_provenance(web3, input, nonce):
-    transaction = {
-        'to': NULL_ADDRESS,
-        'from': ETH_ACCOUNT,
-        'value': 0,
-        'data': input.encode('utf-8').hex(),
-        'gas': 200000,
-        'maxFeePerGas': web3.to_wei(100, 'gwei'),
-        'maxPriorityFeePerGas': web3.to_wei(2, 'gwei'),
-        'nonce': nonce,
-        'chainId': CHAIN_ID}
-    signed = web3.eth.account.sign_transaction(transaction, ETH_PRIVATE_KEY)
-    return web3.eth.send_raw_transaction(signed.rawTransaction)
+    # save the state somewhere for later use
+    session['oauth_state'] = state
 
-nonce = w3.eth.get_transaction_count(ETH_ACCOUNT)
-print(nonce)
-while True:
-    input_text = input('What text do you want to prove provenance on? ')
-    tx_hash = HexBytes(create_provenance(w3, input_text, nonce)).hex()
-    print(f"https://sepolia.etherscan.io/tx/{tx_hash}")
-    nonce += 1 
+    return redirect(authorization_url)
+
+@app.route('/oauth_callback')
+def oauth_callback():
+    client = BackendApplicationClient(client_id=client_id)
+    oauth = OAuth2Session(client=client, state=session['oauth_state'])
+    token = oauth.fetch_token(
+        token_url=token_url,
+        client_secret=client_secret,
+        authorization_response=request.url,
+    )
+
+    # save the access token somewhere for later use
+    session['oauth_token'] = token
+
+    return redirect('/protected_resource')
+
+@app.route('/protected_resource')
+def protected_resource():
+    token = session['oauth_token']
+
+    headers = {
+        'Authorization': f'Bearer {token["access_token"]}',
+    }
+    response = requests.get('https://my_server.com/protected_resource', headers=headers)
+
+    return response.text
+
+if __name__ == '__main__':
+    app.run()
+
