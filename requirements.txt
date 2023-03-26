@@ -1,2 +1,9 @@
 web3
 python-dotenv
+requests
+fastapi
+uvicorn
+eth-hash
+eth-account
+web3
+python-multipart
