@@ -19,3 +19,6 @@ If anyone wants to manually confirm the document's existence at the timestamped 
   3. The existence of that transaction in the blockchain proves that the document existed at the time the transaction was confirmed.
 
 By using ETH Provenance, you can be sure that your document's existence is permanently validated by the Ethereum blockchain, which is a decentralized and trustless network.
+
+## Limitations
+The current code uses the Sepolia chain ID (testnet). You can get free sepETH from faucets and test it. This implementation does not use the more common deployment of NFT contracts as it makes it more difficult to deploy. Consider this a prototype / hack provenance tooling - it can be used in a pitch, but does not offer the user the ability to transfer, hold, modify the data which can be done if using a contract.
