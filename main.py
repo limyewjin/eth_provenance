@@ -13,7 +13,8 @@ CHAIN_ID = 11155111
 
 w3 = Web3(Web3.HTTPProvider(ETH_HTTP_PROVIDER))
 
-print(w3.from_wei(w3.eth.getBalance(ETH_ACCOUNT), 'ether'))
+print(ETH_ACCOUNT)
+print(w3.from_wei(w3.eth.get_balance(ETH_ACCOUNT), 'ether'))
 
 def create_provenance(web3, input, nonce):
     transaction = {
