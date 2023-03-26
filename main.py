@@ -75,6 +75,10 @@ class UpsertResponseMulti(BaseModel):
     tx_hashes: List[str]
 
 
+async def get_document_from_file(file: UploadFile) -> str:
+    contents = await file.read()
+    return sha256(contents).hexdigest()
+
 @app.post(
     "/upsert-file",
     response_model=UpsertResponse,
